@@ -17,6 +17,17 @@ if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR);
 }
 
+// Security: Write cookies from Env Var if present (Best for Render/Docker)
+if (process.env.YOUTUBE_COOKIES) {
+  try {
+    const cookiePath = path.join(process.cwd(), 'cookies.txt');
+    fs.writeFileSync(cookiePath, process.env.YOUTUBE_COOKIES);
+    console.log('✅ Created cookies.txt from environment variable');
+  } catch (e) {
+    console.error('❌ Failed to write cookies from env var:', e);
+  }
+}
+
 // In-memory downloads store
 const downloads = {}; // id -> { params, proc, emitter, status, filename, createdAt }
 
@@ -507,9 +518,9 @@ if (fs.existsSync(distPath)) {
 
   // SPA Fallback
   app.use((req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
-  res.sendFile(path.join(distPath, 'index.html'));
-});
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
 }
 
 const PORT = process.env.PORT || 8081;
